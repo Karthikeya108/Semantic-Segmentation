@@ -60,7 +60,7 @@ def layers(vgg_layer3_out, vgg_layer4_out, vgg_layer7_out, num_classes):
     
     conv_1x1_L4 = tf.layers.conv2d(vgg_layer4_out, num_classes, 1, padding='same', kernel_regularizer=tf.contrib.layers.l2_regularizer(1e-3))
     input_L4 = tf.add(output_L7, conv_1x1_L4)
-    output_L4 = tf.layers.conv2d_transpose(input_L4, num_classes, 4, strides=(2, 2), kernel_regularizer=tf.contrib.layers.l2_regularizer(1e-3))
+    output_L4 = tf.layers.conv2d_transpose(input_L4, num_classes, 4, strides=(2, 2), padding='same', kernel_regularizer=tf.contrib.layers.l2_regularizer(1e-3))
     
     conv_1x1_L3 = tf.layers.conv2d(vgg_layer3_out, num_classes, 1, padding='same', kernel_regularizer=tf.contrib.layers.l2_regularizer(1e-3))
     output_L3 = tf.add(output_L4, conv_1x1_L3)    
@@ -111,7 +111,8 @@ def train_nn(sess, epochs, batch_size, get_batches_fn, train_op, cross_entropy_l
     for epoch in range(epochs):
       print("EPOCH: ",epoch)
       for image, label in get_batches_fn(batch_size):
-        _, loss = sess.run([train_op, cross_entropy_loss], feed_dict={input_image: image, correct_label: label, keep_prob: 0.7, learning_rate: 0.001})
+      #setting the learning rate to 0.00001 and keep_prob value to 0.6
+        _, loss = sess.run([train_op, cross_entropy_loss], feed_dict={input_image: image, correct_label: label, keep_prob: 0.6, learning_rate: 0.00001})
       print("LOSS: ",loss)
 tests.test_train_nn(train_nn)
 
@@ -119,7 +120,7 @@ tests.test_train_nn(train_nn)
 def run():
     num_classes = 2
     image_shape = (160, 576)
-    data_dir = '/data'
+    data_dir = '/root/data'
     runs_dir = './runs'
     tests.test_for_kitti_dataset(data_dir)
 
@@ -148,7 +149,8 @@ def run():
         logits, train_op, cross_entropy_loss = optimize(output_layer, correct_label, learning_rate, num_classes)
 
         # TODO: Train NN using the train_nn function
-        train_nn(sess, 20, 4, get_batches_fn, train_op, cross_entropy_loss, input_image, correct_label, keep_prob, learning_rate)
+        # setting the number of epochs to 50 and batch_size to 5
+        train_nn(sess, 50, 5, get_batches_fn, train_op, cross_entropy_loss, input_image, correct_label, keep_prob, learning_rate)
 
         # TODO: Save inference data using helper.save_inference_samples
         helper.save_inference_samples(runs_dir, data_dir, sess, image_shape, logits, keep_prob, input_image)
